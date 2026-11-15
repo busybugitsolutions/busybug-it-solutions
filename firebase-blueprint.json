@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "ContactInquiry": {
+      "title": "ContactInquiry",
+      "description": "A validated B2B contact inquiry submitted through the BusyBug IT Solutions website.",
+      "type": "object",
+      "properties": {
+        "referenceId": {
+          "type": "string",
+          "description": "Unique human-readable ticket reference ID (e.g., BB-4821).",
+          "minLength": 7,
+          "maxLength": 16,
+          "pattern": "^BB-[A-Z0-9]{4,12}$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the submitting contact.",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address of the submitting contact.",
+          "minLength": 5,
+          "maxLength": 254,
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the submitting contact.",
+          "minLength": 7,
+          "maxLength": 24,
+          "pattern": "^[0-9+\\-().\\s]{7,24}$"
+        },
+        "message": {
+          "type": "string",
+          "description": "Detailed project, audit, or inquiry message.",
+          "minLength": 12,
+          "maxLength": 4000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "reviewed", "resolved"],
+          "description": "Triage status of the inquiry."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["contact-form", "scope-estimator", "careers"],
+          "description": "Origin context of the inquiry."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the inquiry was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the inquiry was last updated."
+        }
+      },
+      "required": [
+        "referenceId",
+        "name",
+        "email",
+        "phone",
+        "message",
+        "status",
+        "source",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Read-only admin membership record keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/inquiries/{inquiryId}": {
+      "schema": {
+        "$ref": "#/entities/ContactInquiry"
+      },
+      "description": "Write-once public contact submissions readable and triaged solely by verified BusyBug admins."
+    },
+    "/admins/{adminId}": {
+      "schema": {
+        "$ref": "#/entities/AdminRecord"
+      },
+      "description": "Authorized BusyBug admin UIDs; locked against client writes."
+    }
+  }
+}

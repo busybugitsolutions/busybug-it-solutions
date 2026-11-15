@@ -1,0 +1,125 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 0: Default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'busybugitsolutions@gmail.com'
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation Blueprint: ContactInquiry
+    function isValidInquiry(data) {
+      return data.keys().hasAll([
+          'referenceId',
+          'name',
+          'email',
+          'phone',
+          'message',
+          'status',
+          'source',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'referenceId',
+          'name',
+          'email',
+          'phone',
+          'message',
+          'status',
+          'source',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.referenceId is string
+        && data.referenceId.size() >= 7
+        && data.referenceId.size() <= 16
+        && data.referenceId.matches('^BB-[A-Z0-9]{4,12}$')
+        && data.name is string
+        && data.name.size() >= 2
+        && data.name.size() <= 120
+        && data.email is string
+        && data.email.size() >= 5
+        && data.email.size() <= 254
+        && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$')
+        && data.phone is string
+        && data.phone.size() >= 7
+        && data.phone.size() <= 24
+        && data.phone.matches('^[0-9+\\-().\\s]{7,24}$')
+        && data.message is string
+        && data.message.size() >= 12
+        && data.message.size() <= 4000
+        && data.status is string
+        && data.status in ['new', 'reviewed', 'resolved']
+        && data.source is string
+        && data.source in ['contact-form', 'scope-estimator', 'careers']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /inquiries/{inquiryId} {
+      // Evaluation order: Auth -> Static Validation -> Relational isAdmin()
+      allow get: if isVerifiedUser() && isValidId(inquiryId) && isAdmin();
+      allow list: if isVerifiedUser() && isAdmin();
+
+      // Public contact intake: static validation & server timestamps only (zero DB reads)
+      allow create: if isValidId(inquiryId)
+        && isValidInquiry(incoming())
+        && incoming().status == 'new'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      // Admin triage update: Auth -> Static schema/ID validation -> Admin DB check -> Action keys & immutability
+      allow update: if isVerifiedUser()
+        && isValidId(inquiryId)
+        && isValidInquiry(incoming())
+        && isAdmin()
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && incoming().referenceId == existing().referenceId
+        && incoming().name == existing().name
+        && incoming().email == existing().email
+        && incoming().phone == existing().phone
+        && incoming().message == existing().message
+        && incoming().source == existing().source
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && existing().status != 'resolved';
+
+      allow delete: if isVerifiedUser() && isValidId(inquiryId) && isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow get: if isVerifiedUser() && isValidId(adminId) && (request.auth.uid == adminId || isAdmin());
+      allow list: if false;
+      allow write: if false;
+    }
+  }
+}
