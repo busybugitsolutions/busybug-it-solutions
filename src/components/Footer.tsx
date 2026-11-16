@@ -121,13 +121,7 @@ export function Footer({ onNavigate }: FooterProps) {
                   </button>
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('admin')}
-                    className="block text-left leading-5 hover:text-[#111317] transition-colors cursor-pointer"
-                  >
-                    Admin Lead Inbox
-                  </button>
+
                 </li>
               </ul>
             </div>
