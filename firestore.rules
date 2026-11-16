@@ -28,12 +28,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.email_verified == true;
     }
 
-    function isAdmin() {
-      return isVerifiedUser() && (
-        request.auth.token.email == 'busybugitsolutions@gmail.com'
-        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
-    }
+    
 
     // Validation Blueprint: ContactInquiry
     function isValidInquiry(data) {
@@ -116,10 +111,5 @@ service cloud.firestore {
       allow delete: if isVerifiedUser() && isValidId(inquiryId) && isAdmin();
     }
 
-    match /admins/{adminId} {
-      allow get: if isVerifiedUser() && isValidId(adminId) && (request.auth.uid == adminId || isAdmin());
-      allow list: if false;
-      allow write: if false;
-    }
   }
 }
