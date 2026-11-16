@@ -134,26 +134,3 @@ export function subscribeToInquiries(
   );
 }
 
-export async function updateInquiryStatus(
-  inquiryId: string,
-  status: InquiryStatus
-): Promise<void> {
-  const docPath = `inquiries/${inquiryId}`;
-  try {
-    await updateDoc(doc(db, 'inquiries', inquiryId), {
-      status,
-      updatedAt: serverTimestamp(),
-    });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, docPath);
-  }
-}
-
-export async function deleteInquiry(inquiryId: string): Promise<void> {
-  const docPath = `inquiries/${inquiryId}`;
-  try {
-    await deleteDoc(doc(db, 'inquiries', inquiryId));
-  } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, docPath);
-  }
-}
