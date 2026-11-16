@@ -120,9 +120,7 @@ export function Footer({ onNavigate }: FooterProps) {
                     Contact Form
                   </button>
                 </li>
-                <li>
 
-                </li>
               </ul>
             </div>
           </div>
