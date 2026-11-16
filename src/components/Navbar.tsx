@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
-export type PageView = 'home' | 'about' | 'admin';
+export type PageView = 'home' | 'about';
 
 interface NavbarProps {
   currentPage: PageView;
