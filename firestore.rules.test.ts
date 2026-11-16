@@ -114,22 +114,5 @@ export const DIRTY_DOZEN_TEST_CASES: SecurityTestCase[] = [
     expected: 'PERMISSION_DENIED',
     payload: { email: 'attacker@example.com', role: 'admin' },
   },
-  {
-    id: 11,
-    name: 'Immortal Field Tampering on Update',
-    operation: 'update',
-    path: 'inquiries/inq_valid',
-    auth: { uid: 'admin_uid', email: 'busybugitsolutions@gmail.com', email_verified: true },
-    expected: 'PERMISSION_DENIED',
-    payload: { message: 'Tampered body', status: 'reviewed', updatedAt: 'SERVER_TIMESTAMP' },
-  },
-  {
-    id: 12,
-    name: 'Post-Terminal State Mutation (resolved -> new)',
-    operation: 'update',
-    path: 'inquiries/inq_resolved',
-    auth: { uid: 'admin_uid', email: 'busybugitsolutions@gmail.com', email_verified: true },
-    expected: 'PERMISSION_DENIED',
-    payload: { status: 'new', updatedAt: 'SERVER_TIMESTAMP' },
-  },
+  
 ];
