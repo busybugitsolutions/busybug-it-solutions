@@ -72,24 +72,7 @@
         "updatedAt"
       ]
     },
-    "AdminRecord": {
-      "title": "AdminRecord",
-      "description": "Read-only admin membership record keyed by Firebase Auth UID.",
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string",
-          "format": "email",
-          "maxLength": 254
-        },
-        "role": {
-          "type": "string",
-          "enum": ["admin"]
-        }
-      },
-      "required": ["email", "role"]
-    }
-  },
+   
   "firestore": {
     "/inquiries/{inquiryId}": {
       "schema": {
@@ -97,11 +80,6 @@
       },
       "description": "Write-once public contact submissions readable and triaged solely by verified BusyBug admins."
     },
-    "/admins/{adminId}": {
-      "schema": {
-        "$ref": "#/entities/AdminRecord"
-      },
-      "description": "Authorized BusyBug admin UIDs; locked against client writes."
-    }
+  
   }
 }
