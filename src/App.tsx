@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MotionConfig, motion } from 'motion/react';
 import { AboutPage } from './components/AboutPage';
-import { AdminInboxPage } from './components/AdminInboxPage';
+
 import { CaseStudiesSection } from './components/CaseStudiesSection';
 import { ContactSection } from './components/ContactSection';
 import { EngagementEstimator } from './components/EngagementEstimator';
