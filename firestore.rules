@@ -1,0 +1,82 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Validation Blueprint: ContactInquiry
+    function isValidInquiry(data) {
+      return data.keys().hasAll([
+          'referenceId',
+          'name',
+          'email',
+          'phone',
+          'message',
+          'status',
+          'source',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'referenceId',
+          'name',
+          'email',
+          'phone',
+          'message',
+          'status',
+          'source',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.referenceId is string
+        && data.referenceId.size() >= 7
+        && data.referenceId.size() <= 16
+        && data.referenceId.matches('^BB-[A-Z0-9]{4,12}$')
+        && data.name is string
+        && data.name.size() >= 2
+        && data.name.size() <= 120
+        && data.email is string
+        && data.email.size() >= 5
+        && data.email.size() <= 254
+        && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$')
+        && data.phone is string
+        && data.phone.size() >= 7
+        && data.phone.size() <= 24
+        && data.phone.matches('^[0-9+\\-().\\s]{7,24}$')
+        && data.message is string
+        && data.message.size() >= 12
+        && data.message.size() <= 4000
+        && data.status is string
+        && data.status in ['new', 'reviewed', 'resolved']
+        && data.source is string
+        && data.source in ['contact-form', 'scope-estimator', 'careers']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /inquiries/{inquiryId} {
+      // Strictly write-only public intake; all client reads, updates, and deletes are denied
+      allow get: if false;
+      allow list: if false;
+      allow update: if false;
+      allow delete: if false;
+
+      allow create: if isValidId(inquiryId)
+        && isValidInquiry(incoming())
+        && incoming().status == 'new'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+    }
+  }
+}
